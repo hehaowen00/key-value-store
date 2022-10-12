@@ -13,17 +13,13 @@ fn main() {
     kv.insert_if_none(b"person:3:name", b"john").unwrap();
     kv.insert_if_none(b"person:3:age", b"3").unwrap();
 
-    kv.flush();
+    let mut count = 0;
 
-    let count = kv.fold(
-        |k, _v, acc| {
-            if k.starts_with(b"person") && k.ends_with(b"age") {
-                return acc + 1;
-            }
-            acc
-        },
-        0,
-    );
+    for (k, _) in kv.iter(..) {
+        if k.starts_with(b"person") && k.ends_with(b"age") {
+            count += 1;
+        }
+    }
 
     println!("number of contacts: {}", count);
 }

@@ -2,35 +2,42 @@ use super::index::Entry;
 use super::reader::{FileMap, Value};
 use super::util::data_path;
 use crate::Bitcask;
-use std::collections::btree_map::Range;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub struct RangeIter<'a> {
     cache: HashMap<u64, FileMap>,
-    range: Range<'a, Vec<u8>, Entry>,
+    range: Box<dyn Iterator<Item = (&'a Vec<u8>, &'a Entry)> + 'a>,
     root: PathBuf,
 }
 
 impl<'a> RangeIter<'a> {
-    pub fn new(bitcask: &'a Bitcask, start: &[u8], end: &[u8]) -> Self {
+    pub fn new(
+        bitcask: &'a Bitcask,
+        iter: Box<dyn Iterator<Item = (&'a Vec<u8>, &'a Entry)> + 'a>,
+    ) -> Self {
         Self {
             cache: HashMap::new(),
-            range: bitcask.index.range(start, end),
+            range: iter,
             root: bitcask.root().to_path_buf(),
         }
     }
 }
 
 impl<'a> Iterator for RangeIter<'a> {
-    type Item = (&'a Vec<u8>, Value);
+    type Item = (Vec<u8>, Value);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.range.next() {
             Some((k, entry)) => {
+                println!("{:?}", k);
                 let f = match self.cache.get(&entry.file()) {
-                    Some(f) => f,
+                    Some(f) => {
+                        println!("some");
+                        f
+                    }
                     None => {
+                        println!("none");
                         let path = data_path(&self.root, entry.file());
                         let map = FileMap::new(path);
 
@@ -39,7 +46,7 @@ impl<'a> Iterator for RangeIter<'a> {
                     }
                 };
                 match f.get(entry.offset(), entry.size()) {
-                    Ok(value) => Some((k, value)),
+                    Ok(value) => Some((k.to_vec(), value)),
                     _ => None,
                 }
             }

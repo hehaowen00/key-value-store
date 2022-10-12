@@ -10,7 +10,7 @@ use std::path::Path;
 
 #[derive(Debug)]
 pub struct Index {
-    inner: BTreeMap<Vec<u8>, Entry>,
+    pub(crate) inner: BTreeMap<Vec<u8>, Entry>,
 }
 
 impl Index {

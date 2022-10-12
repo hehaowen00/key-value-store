@@ -10,9 +10,11 @@ fn main() {
     kv.insert(&id(4), b"d").unwrap();
     kv.insert(&id(5), b"e").unwrap();
 
-    for (k, v) in kv.range(&id(2), &id(4)) {
+    let range = id(2).to_vec()..;
+
+    for (k, v) in kv.iter(range) {
         let mut buf = [0u8; 8];
-        buf.copy_from_slice(k);
+        buf.copy_from_slice(&k);
         println!("{} {}", u64::from_be_bytes(buf), to_str(v.data()));
     }
 }

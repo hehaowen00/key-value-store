@@ -18,6 +18,7 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::ops::RangeBounds;
 use std::path::Path;
 
 pub struct Bitcask {
@@ -175,6 +176,8 @@ impl Bitcask {
             None => {}
         };
 
+        self.flush();
+
         Ok(())
     }
 
@@ -203,8 +206,11 @@ impl Bitcask {
         res
     }
 
-    pub fn range(&self, start: &[u8], end: &[u8]) -> RangeIter {
-        RangeIter::new(self, start, end)
+    pub fn iter<'a, R>(&'a self, range: R) -> RangeIter<'a>
+    where
+        R: RangeBounds<Vec<u8>>,
+    {
+        RangeIter::new(&self, Box::new(self.index.inner.range(range)))
     }
 
     pub fn merge(&mut self) {
