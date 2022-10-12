@@ -30,14 +30,9 @@ impl<'a> Iterator for RangeIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.range.next() {
             Some((k, entry)) => {
-                println!("{:?}", k);
                 let f = match self.cache.get(&entry.file()) {
-                    Some(f) => {
-                        println!("some");
-                        f
-                    }
+                    Some(f) => f,
                     None => {
-                        println!("none");
                         let path = data_path(&self.root, entry.file());
                         let map = FileMap::new(path);
 

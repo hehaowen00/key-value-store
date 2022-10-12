@@ -159,6 +159,12 @@ impl Bitcask {
     }
 
     pub fn insert(&mut self, key: &[u8], value: &[u8]) -> Result<()> {
+        if let Some(v) = self.get(key) {
+            if v.data() == value {
+                return Ok(());
+            }
+        }
+
         let ts = Utc::now().timestamp() as u64;
 
         if self.disk.position() + compute_size(key, value) > self.opts.file_size_limit {
